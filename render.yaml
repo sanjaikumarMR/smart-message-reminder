@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: smart-message-reminder-sanjaikumar
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
