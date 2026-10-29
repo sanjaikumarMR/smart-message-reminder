@@ -318,7 +318,7 @@ export default function App() {
             <section className="import-card">
               <div className="import-heading">
                 <div className="whatsapp-icon">◉</div>
-                <div><h2>Capture a commitment</h2><p>Paste a message or select text in your enabled WhatsApp chat.</p></div>
+                <div><h2>Capture a commitment</h2><p>Enabled WhatsApp chats are checked automatically. Paste a message here as a fallback.</p></div>
               </div>
               <form className="import-form" onSubmit={(event) => { event.preventDefault(); void importMessage(message); }}>
                 <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="e.g. Remind me tomorrow to send the proposal…" aria-label="Message to analyze" />

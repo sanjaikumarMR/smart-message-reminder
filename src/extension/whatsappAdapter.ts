@@ -4,8 +4,7 @@ export interface VisibleMessage {
   chatName: string | null;
 }
 
-const MESSAGE_SELECTOR =
-  '[data-pre-plain-text], [data-id^="true_"], [data-id^="false_"]';
+const MESSAGE_SELECTOR = "[data-id], [data-pre-plain-text]";
 
 function isVisible(element: HTMLElement): boolean {
   const rect = element.getBoundingClientRect();
@@ -23,17 +22,22 @@ function isNearChatBottom(element: HTMLElement, main: HTMLElement): boolean {
   const messageRect = element.getBoundingClientRect();
   const mainRect = main.getBoundingClientRect();
   let parent = element.parentElement;
+  let foundScrollContainer = false;
   while (parent && main.contains(parent)) {
     const style = window.getComputedStyle(parent);
     if (
       parent.scrollHeight > parent.clientHeight + 40 &&
-      /(auto|scroll|hidden|overlay)/.test(style.overflowY)
+      /(auto|scroll|overlay)/.test(style.overflowY)
     ) {
-      return parent.scrollHeight - parent.clientHeight - parent.scrollTop < 160;
+      foundScrollContainer = true;
+      if (parent.scrollHeight - parent.clientHeight - parent.scrollTop < 160) {
+        return true;
+      }
     }
     if (parent === main) break;
     parent = parent.parentElement;
   }
+  if (foundScrollContainer) return false;
   return (
     messageRect.bottom >= mainRect.bottom - 220 &&
     messageRect.top < mainRect.bottom
@@ -61,7 +65,13 @@ export function getCurrentChatName(): string | null {
 export function getRenderedMessageElements(
   main: HTMLElement,
 ): HTMLElement[] {
-  return Array.from(main.querySelectorAll<HTMLElement>(MESSAGE_SELECTOR));
+  const elements = Array.from(
+    main.querySelectorAll<HTMLElement>(MESSAGE_SELECTOR),
+  );
+  return elements.filter((element) => {
+    const text = element.innerText.trim();
+    return text.length > 0 && text.length <= 2000;
+  });
 }
 
 export function readVisibleMessage(element: HTMLElement): VisibleMessage | null {

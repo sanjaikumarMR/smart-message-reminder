@@ -264,7 +264,7 @@ function maybeImportNewMessage(element: HTMLElement): void {
         console.error("Could not process a newly visible message:", error);
         setStatus("Could not reach the reminder service.");
       });
-  }, 80);
+  }, 300);
 }
 
 function attachMessageObserver(): void {
