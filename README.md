@@ -54,10 +54,10 @@ The Chrome extension must still be installed separately in each browser. The man
 2. Open `chrome://extensions` in Chrome and enable **Developer mode**.
 3. Choose **Load unpacked** and select this project's `dist` folder.
 4. Open WhatsApp Web and reload the tab so the extension content script is installed.
-5. In WhatsApp Web, use the **Monitor this chat** control to explicitly enable one open chat. Newly added visible messages in that chat are checked locally; the currently rendered messages are marked as baseline and are not backfilled.
+5. In WhatsApp Web, open each chat you want monitored and choose **Enable this chat**. The extension remembers each enabled chat. Newly added visible messages are checked locally while an enabled chat is open; messages shown before enabling are not backfilled.
 6. To import a particular message, select its text and choose **Add reminder**. This works in the explicitly enabled chat too.
 
-The WhatsApp Web UI is not a stable integration surface. The extension uses a small isolated DOM adapter for currently visible messages and a best-effort chat header label; this may stop working if WhatsApp changes its UI. It does not use undocumented WhatsApp APIs, scan the history, or process any chat until that chat is explicitly enabled. The adapter only processes newly added visible messages while the chat is at its latest-message position; messages loaded while scrolling history are ignored. If automatic detection or selection does not work, paste the message into the dashboard's manual import box. Parsing is local and rule-based. A date without a specific time is scheduled for 9:00 AM local time. Messages without a clear date are saved as **Needs review** until a user schedules them.
+The WhatsApp Web UI is not a stable integration surface. The extension uses a small isolated DOM adapter for currently visible messages and a best-effort chat header label; this may stop working if WhatsApp changes its UI. It does not use undocumented WhatsApp APIs, scan history, or process a chat until that chat is explicitly enabled. The adapter checks newly added visible messages in enabled chats when open; it does not monitor every conversation in the background. Messages loaded while scrolling history are ignored. If automatic detection or selection does not work, paste the message into the dashboard's manual import box. Parsing is local and rule-based. A date without a specific time is scheduled for 9:00 AM local time. Messages without a clear date are saved as **Needs review** until a user schedules them.
 
 ### Connect the hosted or localhost dashboard to Chrome storage
 
@@ -65,8 +65,8 @@ The extension popup already shares Chrome storage. If you use the dashboard at `
 
 ## Privacy and notifications
 
-- Monitoring is off by default and must be enabled for one open chat.
-- The extension processes only newly added visible messages in that enabled chat, or text explicitly selected by the user. It does not backfill already displayed chat history.
+- Monitoring is globally off by default. Each chat must be enabled individually, and monitoring can be globally paused at any time.
+- The extension processes only newly added visible messages in an enabled chat while it is open, or text explicitly selected by the user. It does not monitor every conversation in the background or backfill already displayed chat history.
 - Original excerpts are not saved unless **Save original message excerpt** is enabled.
 - Reminder records and settings are stored with Chrome Storage API in the extension and are never transmitted.
 - Chrome alarms and notifications require Chrome to be running. Reminders might not fire while Chrome is closed or the device is asleep.

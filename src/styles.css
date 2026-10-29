@@ -105,6 +105,10 @@ h1 { font: 700 27px Manrope, sans-serif; letter-spacing: -.8px; margin-bottom: 8
 .extension-connect small { display: block; margin-top: 7px; color: #969ca7; font-size: 9px; }
 .disconnect-button { border: 1px solid #e4e6ec; background: white; color: #6e7480; border-radius: 6px; padding: 7px 10px; font-size: 10px; }
 .connection-confirmation { color: #478262 !important; }
+.enabled-chats { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding-top: 12px; color: #737986; font-size: 10px; }
+.enabled-chats > strong { flex-basis: 100%; color: #4d535e; }
+.enabled-chat { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e8eaf0; border-radius: 20px; padding: 4px 7px 4px 9px; }
+.enabled-chat button { border: 0; border-radius: 50%; width: 17px; height: 17px; padding: 0; color: #8c919d; background: #f1f2f5; line-height: 1; }
 .setting-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; border-top: 1px solid #f0f1f4; padding-top: 14px; margin-top: 13px; }
 .setting-row strong { font-size: 10px; }
 .setting-row p { font-size: 9px; color: #969ca7; margin: 4px 0 0; }

@@ -294,7 +294,7 @@ export default function App() {
             <a className="whatsapp-link" href="https://web.whatsapp.com/" target="_blank" rel="noreferrer">
               <span aria-hidden="true">◉</span> Open WhatsApp
             </a>
-            <button className="monitor-toggle" onClick={() => void updateSetting({ monitoringEnabled: !settings.monitoringEnabled, monitoringChat: settings.monitoringEnabled ? null : settings.monitoringChat })}>
+            <button className="monitor-toggle" onClick={() => void updateSetting({ monitoringEnabled: !settings.monitoringEnabled })}>
               <span className={settings.monitoringEnabled ? "toggle on" : "toggle"}><i /></span>
               {settings.monitoringEnabled ? "Monitoring on" : "Monitor WhatsApp"}
             </button>
@@ -369,7 +369,7 @@ export default function App() {
 
             <section className="settings-card">
               <h2>WhatsApp Web</h2>
-              <p>Connect this dashboard to the extension to share reminders and settings. Then enable monitoring for one open chat from the small control on WhatsApp Web.</p>
+              <p>Connect this dashboard to the extension to share reminders and settings. Open each chat you want monitored and choose <strong>Enable this chat</strong> in WhatsApp Web. Only chats you explicitly enable are monitored.</p>
               {!isExtensionPage() && (
                 <div className="extension-connect">
                   <label htmlFor="extension-id">Chrome extension ID</label>
@@ -382,7 +382,22 @@ export default function App() {
                 </div>
               )}
               {isExtensionPage() && <p className="connection-confirmation">This dashboard is running inside the extension and already shares its reminder storage.</p>}
-              <SettingRow title="Enable WhatsApp monitoring" description="Monitoring stays off unless you enable a specific open chat in WhatsApp Web." checked={settings.monitoringEnabled} onChange={(checked) => void updateSetting({ monitoringEnabled: checked, monitoringChat: checked ? settings.monitoringChat : null })} />
+              <SettingRow title="Enable WhatsApp monitoring" description={`Global pause. ${settings.enabledChats.length} chat${settings.enabledChats.length === 1 ? "" : "s"} explicitly enabled; open and enable other chats individually.`} checked={settings.monitoringEnabled} onChange={(checked) => void updateSetting({ monitoringEnabled: checked })} />
+              {settings.enabledChats.length > 0 && (
+                <div className="enabled-chats" aria-label="Enabled WhatsApp chats">
+                  <strong>Enabled chats</strong>
+                  {settings.enabledChats.map((chat) => (
+                    <span className="enabled-chat" key={chat}>
+                      {chat}
+                      <button
+                        aria-label={`Stop monitoring ${chat}`}
+                        title={`Stop monitoring ${chat}`}
+                        onClick={() => void updateSetting({ enabledChats: settings.enabledChats.filter((enabledChat) => enabledChat !== chat) })}
+                      >×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
               <SettingRow title="Keep message excerpts" description="Off by default. If enabled, saved reminders may retain the source message text." checked={settings.saveMessageExcerpt} onChange={(checked) => void updateSetting({ saveMessageExcerpt: checked })} />
             </section>
             <section className="settings-card">

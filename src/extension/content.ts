@@ -11,7 +11,7 @@ const ACTION_ID = "smart-message-reminder-import";
 const TOOLBAR_ID = "smart-message-reminder-chat-control";
 const DEFAULT_SETTINGS: ReminderSettings = {
   monitoringEnabled: false,
-  monitoringChat: null,
+  enabledChats: [],
   saveMessageExcerpt: false,
   notificationsEnabled: true,
   leadTimeMinutes: 0,
@@ -24,7 +24,6 @@ let toolbarStatus: HTMLSpanElement | null = null;
 let observedMain: HTMLElement | null = null;
 let messageObserver: MutationObserver | null = null;
 let lastObservedChat: string | null = null;
-let lastMonitoringTarget: string | null = null;
 let statusText = "Choose whether to monitor this chat.";
 let statusExpiresAt = 0;
 const processedMessageText = new WeakMap<HTMLElement, string>();
@@ -34,7 +33,7 @@ function isCurrentChatEnabled(chatName = getCurrentChatName()): boolean {
   return Boolean(
     settings.monitoringEnabled &&
       chatName &&
-      settings.monitoringChat === chatName,
+      settings.enabledChats.includes(chatName),
   );
 }
 
@@ -98,8 +97,14 @@ function renderToolbar(): void {
       const isEnabled = isCurrentChatEnabled(currentChat);
       settings = {
         ...settings,
-        monitoringEnabled: isEnabled ? settings.monitoringEnabled : true,
-        monitoringChat: isEnabled ? null : currentChat,
+        monitoringEnabled: isEnabled
+          ? settings.enabledChats.length > 1
+            ? settings.monitoringEnabled
+            : false
+          : true,
+        enabledChats: isEnabled
+          ? settings.enabledChats.filter((chat) => chat !== currentChat)
+          : [...new Set([...settings.enabledChats, currentChat])],
       };
       chrome.storage.local.set({ [SETTINGS_KEY]: settings }, () => {
         if (chrome.runtime.lastError) {
@@ -107,7 +112,7 @@ function renderToolbar(): void {
           return;
         }
         statusText = isEnabled
-          ? "Monitoring paused for this chat."
+          ? `Stopped monitoring ${currentChat}.`
           : `Watching new visible messages in ${currentChat}.`;
         setStatus(statusText);
         seedCurrentView();
@@ -118,8 +123,8 @@ function renderToolbar(): void {
 
   if (toolbarButton) {
     toolbarButton.textContent = isCurrentChatEnabled(chatName)
-      ? "Pause this chat"
-      : "Monitor this chat";
+      ? "Stop this chat"
+      : "Enable this chat";
     toolbarButton.disabled = !chatName;
     toolbarButton.style.opacity = chatName ? "1" : "0.55";
   }
@@ -127,7 +132,7 @@ function renderToolbar(): void {
     if (statusExpiresAt > Date.now()) {
       toolbarStatus.textContent = statusText;
     } else if (isCurrentChatEnabled(chatName)) {
-      toolbarStatus.textContent = `Monitoring new messages in ${chatName}.`;
+      toolbarStatus.textContent = `Monitoring this enabled chat. ${settings.enabledChats.length} chat${settings.enabledChats.length === 1 ? "" : "s"} enabled.`;
     } else if (chatName) {
       toolbarStatus.textContent = `Not monitoring ${chatName}.`;
     } else {
@@ -212,9 +217,6 @@ function seedCurrentView(): void {
     processedMessageText.set(element, element.innerText.trim());
   }
   lastObservedChat = getCurrentChatName();
-  lastMonitoringTarget = isCurrentChatEnabled(lastObservedChat)
-    ? lastObservedChat
-    : null;
 }
 
 function maybeImportNewMessage(element: HTMLElement): void {
@@ -232,7 +234,10 @@ function maybeImportNewMessage(element: HTMLElement): void {
     const chatName = getCurrentChatName();
     if (!isCurrentChatEnabled(chatName)) return;
     const visibleMessage = readVisibleMessage(element);
-    if (!visibleMessage || visibleMessage.chatName !== settings.monitoringChat) return;
+    if (
+      !visibleMessage ||
+      !settings.enabledChats.includes(visibleMessage.chatName ?? "")
+    ) return;
     processedMessageText.set(element, visibleMessage.text);
     chrome.runtime
       .sendMessage({
@@ -275,11 +280,6 @@ function attachMessageObserver(): void {
       return;
     }
     if (!isCurrentChatEnabled(currentChat)) return;
-    const monitoringTarget = settings.monitoringChat;
-    if (monitoringTarget !== lastMonitoringTarget) {
-      seedCurrentView();
-      return;
-    }
     for (const mutation of mutations) {
       if (mutation.type === "childList") {
         for (const node of mutation.addedNodes) {
@@ -318,12 +318,21 @@ function refreshSettings(): void {
       setStatus("Could not read settings. Reload the extension.");
       return;
     }
-    const previousTarget = settings.monitoringChat;
+    const previousTarget = settings.enabledChats.join("\u0000");
     const previousEnabled = settings.monitoringEnabled;
     const stored = result[SETTINGS_KEY] as Partial<ReminderSettings> | undefined;
-    settings = { ...DEFAULT_SETTINGS, ...stored };
+    const legacy = stored as
+      | (Partial<ReminderSettings> & { monitoringChat?: string | null })
+      | undefined;
+    settings = {
+      ...DEFAULT_SETTINGS,
+      ...legacy,
+      enabledChats:
+        legacy?.enabledChats ??
+        (legacy?.monitoringChat ? [legacy.monitoringChat] : []),
+    };
     if (
-      settings.monitoringChat !== previousTarget ||
+      settings.enabledChats.join("\u0000") !== previousTarget ||
       settings.monitoringEnabled !== previousEnabled
     ) {
       seedCurrentView();

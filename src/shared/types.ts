@@ -27,7 +27,7 @@ export interface ReminderDraft {
 
 export interface ReminderSettings {
   monitoringEnabled: boolean;
-  monitoringChat: string | null;
+  enabledChats: string[];
   saveMessageExcerpt: boolean;
   notificationsEnabled: boolean;
   leadTimeMinutes: number;
@@ -61,7 +61,7 @@ export type ExternalExtensionMessage =
 
 export const DEFAULT_SETTINGS: ReminderSettings = {
   monitoringEnabled: false,
-  monitoringChat: null,
+  enabledChats: [],
   saveMessageExcerpt: false,
   notificationsEnabled: true,
   leadTimeMinutes: 0,

@@ -103,7 +103,16 @@ export async function clearAllData(): Promise<void> {
 }
 
 export async function getSettings(): Promise<ReminderSettings> {
-  return readValue(SETTINGS_KEY, DEFAULT_SETTINGS);
+  const stored = await readValue<
+    Partial<ReminderSettings> & { monitoringChat?: string | null }
+  >(SETTINGS_KEY, DEFAULT_SETTINGS);
+  return {
+    ...DEFAULT_SETTINGS,
+    ...stored,
+    enabledChats:
+      stored.enabledChats ??
+      (stored.monitoringChat ? [stored.monitoringChat] : []),
+  };
 }
 
 export async function saveSettings(
